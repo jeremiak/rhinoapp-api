@@ -192,9 +192,18 @@ def set_profile():
             {"name": "Unsaturated Fat","value": "false"},
             {"name": "Vegetable Gum","value": "false"}]
 
-    params = {'sid': session_id, 'nutrients': nutrients, 'allergens': allergens, 'additives': additives, 'myingredients': [], 'mysort': []}
-
-    r = requests.post((FOOD_API % 'setprofile'), params=json.dumps({'json': params}), data={'api_key': MASHERY_KEY})
+    p = {'session_id': session_id,
+            'nutrients': nutrients,
+            'allergens': allergens,
+            'additives': additives,
+            'myingredients': [],
+            'mysort': [
+                {'sort_variable': 'Calories',
+                    'sort_order': 1
+                    }]
+            }
+    
+    r = requests.post((FOOD_API % 'setprofile'), data={'json': json.dumps(p), 'api_key': MASHERY_KEY})
 
     return {'food_api_status': r.status_code, 'daily_calorie_limit': daily_calorie_limit}
 
