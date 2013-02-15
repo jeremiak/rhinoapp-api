@@ -11,8 +11,15 @@ MASHERY_KEY = environ.get('MASHERY_KEY')
 def get_food_label(upc, session_id):
     params = {}
     params['u'] = upc
+    params['f'] = 'json'
+    params['n'] = 0
+    params['s'] = 0
     params['sid'] = session_id
-    r = requests.get((FOOD_API % 'labelarray'), params=params, data={'api_key': MASHERY_KEY})
+    params['api_key'] = MASHERY_KEY
+
+    r = requests.get((FOOD_API % 'labelarray'), params=params)
+
+    print r.url
 
     return r.json()
 
@@ -87,13 +94,29 @@ def search_upc():
     label = get_food_label(upc, session_id)
     product = label['productsArray'][0]
     nutrients = calculate_nutrient_percents(product['nutrients'], daily_calorie_limit)
+    ingredients = product['ingredients']
+    allergens = product['allergens']
     
+    allergen_yellow_ingredients = []
+    allergen_red_ingredients = []
+
+    for allergen in allergens:
+        print allergen
+        for red in allergen['allergen_red_ingredients'].split(', '):
+            allergen_red_ingredients.append(red)
+        
+        for yellow in allergen['allergen_yellow_ingredients'].split(', '):
+            print yellow
+            allergen_yellow_ingredients.append(yellow)
+
     data = {'item': product['product_name'],
             'serving_size': product['serving_size'],
             'serving_size_uom': product['serving_size_uom'],
             'servings_per_container': product['servings_per_container'],
             'nutrients': nutrients, 
-            'ingredients': product['ingredients'],
+            'ingredients': ingredients,
+            'allergen_yellow_ingredients': allergen_yellow_ingredients,
+            'allergen_red_ingredients': allergen_red_ingredients,
             'daily_calorie_limit': daily_calorie_limit}
 
     return data
@@ -129,7 +152,7 @@ def set_profile():
     corn_allergy = request.forms.get('corn_allergy', 'false')
     egg_allergy = request.forms.get('egg_allergy', 'false')
     fish_allergy = request.forms.get('fish_allergy', 'false')
-    gluten_allergy = request.forms.get('gluten_allergy', 'false')
+    gluten_allergy = request.forms.get('gluten_allergy', 'true')
     lactose_allergy = request.forms.get('lactose_allergy', 'false')
     milk_allergy = request.forms.get('milk_allergy', 'false')
     peanuts_allergy = request.forms.get('peanuts_allergy', 'false')
