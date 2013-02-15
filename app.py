@@ -19,8 +19,6 @@ def get_food_label(upc, session_id):
 
     r = requests.get((FOOD_API % 'labelarray'), params=params)
 
-    print r.url
-
     return r.json()
 
 def calculate_nutrient_percents(nutrients, daily_cal):
