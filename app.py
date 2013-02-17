@@ -19,7 +19,10 @@ def get_food_label(upc, session_id):
 
     r = requests.get((FOOD_API % 'labelarray'), params=params)
 
-    return r.json()
+    if r.status_code == 200:
+        return r.json()
+    else:
+        return 'food_essentials api error'
 
 def calculate_nutrient_percents(nutrients, daily_cal):
     daily_allowance = {}
@@ -90,32 +93,35 @@ def search_upc():
     daily_calorie_limit = float(request.query.get('daily_cal', '2000'))
 
     label = get_food_label(upc, session_id)
-    product = label['productsArray'][0]
-    nutrients = calculate_nutrient_percents(product['nutrients'], daily_calorie_limit)
-    ingredients = product['ingredients']
-    allergens = product['allergens']
-    
-    allergen_yellow_ingredients = []
-    allergen_red_ingredients = []
-
-    for allergen in allergens:
-        print allergen
-        for red in allergen['allergen_red_ingredients'].split(', '):
-            allergen_red_ingredients.append(red)
+    if label != 'food_essentials api error':
+        product = label['productsArray'][0]
+        nutrients = calculate_nutrient_percents(product['nutrients'], daily_calorie_limit)
+        ingredients = product['ingredients']
+        allergens = product['allergens']
         
-        for yellow in allergen['allergen_yellow_ingredients'].split(', '):
-            print yellow
-            allergen_yellow_ingredients.append(yellow)
+        allergen_yellow_ingredients = []
+        allergen_red_ingredients = []
 
-    data = {'item': product['product_name'],
-            'serving_size': product['serving_size'],
-            'serving_size_uom': product['serving_size_uom'],
-            'servings_per_container': product['servings_per_container'],
-            'nutrients': nutrients, 
-            'ingredients': ingredients,
-            'allergen_yellow_ingredients': allergen_yellow_ingredients,
-            'allergen_red_ingredients': allergen_red_ingredients,
-            'daily_calorie_limit': daily_calorie_limit}
+        for allergen in allergens:
+            print allergen
+            for red in allergen['allergen_red_ingredients'].split(', '):
+                allergen_red_ingredients.append(red)
+            
+            for yellow in allergen['allergen_yellow_ingredients'].split(', '):
+                print yellow
+                allergen_yellow_ingredients.append(yellow)
+
+        data = {'item': product['product_name'],
+                'serving_size': product['serving_size'],
+                'serving_size_uom': product['serving_size_uom'],
+                'servings_per_container': product['servings_per_container'],
+                'nutrients': nutrients, 
+                'ingredients': ingredients,
+                'allergen_yellow_ingredients': allergen_yellow_ingredients,
+                'allergen_red_ingredients': allergen_red_ingredients,
+                'daily_calorie_limit': daily_calorie_limit}
+    else:
+        data = {'error': 'food_essentials'}
 
     return data
 
@@ -219,9 +225,11 @@ def set_profile():
             'additives': additives,
             'myingredients': [],
             'mysort': [
-                {'sort_variable': 'Calories',
+                {
+                    'sort_variable': 'Calories',
                     'sort_order': 1
-                    }]
+                    }
+                ]
             }
     
     r = requests.post((FOOD_API % 'setprofile'), data={'json': json.dumps(p), 'api_key': MASHERY_KEY})
