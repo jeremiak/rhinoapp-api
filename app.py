@@ -22,7 +22,7 @@ def get_food_label(upc, session_id):
     if r.status_code == 200:
         return r.json()
     else:
-        return 'food_essentials api error'
+        return 'food_essentials api error'  #this should really be something different
 
 def calculate_nutrient_percents(nutrients, daily_cal):
     daily_allowance = {}
