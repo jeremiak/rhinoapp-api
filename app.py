@@ -245,7 +245,7 @@ def create_session():
 
     session_id = r.json().get('session_id', None)
     
-    return session_id
+    return {'session_id': session_id}
 
 @get('/status')
 @post('/status')
